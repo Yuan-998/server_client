@@ -1,7 +1,3 @@
-//
-// Created by yuan on 28.07.22.
-//
-
 #ifndef SERVER_CLIENT_SHM_HEADER_H
 #define SERVER_CLIENT_SHM_HEADER_H
 

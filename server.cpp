@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <unistd.h>
 
 #include "lockhashmap.c"
 #include "shm_header.h"
@@ -37,7 +36,6 @@ int main(int argc, char const *argv[]) {
     printf("server start\n");
     clean_shm(me);
     while (1) {
-        sleep(1);
         int index = poll_server(me);
         if (index != -1) {
             struct message *tmp = me + index;
