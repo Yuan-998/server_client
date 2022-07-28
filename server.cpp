@@ -6,10 +6,27 @@
 
 #include "lockhashmap.c"
 
-struct sys_data {
+#define SIZE 5
+
+struct message {
     int operation;  // 0 insert  1 print a bucket list  2 delete
     int data;
+    bool read = true;
 };
+
+int poll(struct message *me) {
+    for (int i = 0; i < SIZE; ++i) {
+        if ((me + i)->read == false)
+            return i;
+    }
+    return -1;
+}
+
+void clean_shm(struct message *me) {
+    for (int i = 0; i < SIZE; ++i) {
+        (me + i)->read = true;
+    }
+}
 
 int main(int argc, char const *argv[]) {
     if (argc != 2)
@@ -18,11 +35,10 @@ int main(int argc, char const *argv[]) {
 
     void *shm = (void *) 0;
     int shmid;
-    struct sys_data *da;
-
-    shmid = shmget((key_t) 8891, sizeof(struct sys_data), 0666 | IPC_CREAT);
+    struct message *me;
+    shmid = shmget((key_t) 6666, sizeof(struct message) * SIZE, 0666 | IPC_CREAT);
     if (shmid == -1) {
-        printf("shmget error\n");
+        perror("shmget");
         exit(-1);
     } else {
         printf("server shmid=%d\n", shmid);
@@ -32,22 +48,31 @@ int main(int argc, char const *argv[]) {
         printf("shmat error\n");
         exit(-1);
     }
-    da = (sys_data *) shm;
+    me = (message *) shm;
     printf("shmat start\n");
+    clean_shm(me);
     while (1) {
-        sleep(3);
-        printf("op: %d data: %d\n", da->operation, da->data);
-        switch (da->operation) {
-            case 0:
-                insert_item(hm, da->data);
-                break;
-            case 1:
-                print_list(hm->buckets[da->data], da->data);
-                break;
-            case 2:
-                if (remove_item(hm, da->data))
-                    printf("%d doesn't exist in hashmap\n", da->data);
-                break;
+        sleep(1);
+        int index = poll(me);
+        if (index != -1) {
+            struct message *tmp = me + index;
+            printf("op: %d data: %d\n", tmp->operation, tmp->data);
+            switch (tmp->operation) {
+                case 0:
+                    insert_item(hm, tmp->data);
+                    break;
+                case 1:
+                    print_list(hm->buckets[tmp->data], tmp->data);
+                    break;
+                case 2:
+                    if (remove_item(hm, tmp->data))
+                        printf("%d doesn't exist in hashmap\n", tmp->data);
+                    break;
+                case 3:
+                    print_hashmap(hm);
+                    break;
+            }
+            tmp->read = true;
         }
     }
 

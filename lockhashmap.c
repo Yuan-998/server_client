@@ -52,12 +52,9 @@ void free_hashmap(HM *hm) {
 
 
 int insert_item(HM *hm, long val) {
-    if (!lookup_item(hm, val))
-        return 1;
     int index = hash(val, hm->n_buckets);
     List *tmp = hm->buckets[0 + index];
     Node_HM *sentinel = tmp->sentinel;
-
     pthread_rwlock_rdlock(&sentinel->rwlock);
     Node_HM *node_next = sentinel->m_next;
     pthread_rwlock_unlock(&sentinel->rwlock);
@@ -70,7 +67,6 @@ int insert_item(HM *hm, long val) {
     sentinel->m_next = node;
     node->m_next = node_next;
     pthread_rwlock_unlock(&sentinel->rwlock);
-
     return 0;
 }
 
@@ -81,17 +77,19 @@ int remove_item(HM *hm, long val) {
 
     List *tmp = hm->buckets[0 + index];
     pthread_rwlock_rdlock(&tmp->sentinel->rwlock);
-    Node_HM *curr = tmp->sentinel->m_next;
+    Node_HM *curr = tmp->sentinel;
     pthread_rwlock_unlock(&tmp->sentinel->rwlock);
     while (1) {
-        pthread_rwlock_rdlock(&curr->rwlock);
-        if (curr->m_val != val)
+        pthread_rwlock_t tmp_lock = curr->rwlock;
+        pthread_rwlock_rdlock(&tmp_lock);
+        if (curr->m_next->m_val == val)
             break;
         curr = curr->m_next;
-        pthread_rwlock_unlock(&curr->rwlock);
+        pthread_rwlock_unlock(&tmp_lock);
     }
     pthread_rwlock_wrlock(&curr->rwlock);
     curr->m_next = curr->m_next->m_next;
+    print_hashmap(hm);
     pthread_rwlock_unlock(&curr->rwlock);
     return 0;
 }
