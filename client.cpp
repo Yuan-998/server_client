@@ -1,15 +1,11 @@
-//shm_client.c
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <fcntl.h>
-#include <sys/ipc.h>//ipc
+#include <sys/ipc.h>
 #include <sys/shm.h>
-#include <unistd.h>
 
 struct sys_data {
-    float data_rh;
-    float data_t;
+    int operation;  // 0 insert  1 print a bucket list  2 delete
+    int data;
 };
 
 int main(int argc, char const *argv[]) {
@@ -17,8 +13,7 @@ int main(int argc, char const *argv[]) {
     int shmid;
     struct sys_data *da;
     float ftemp = 0.0, fhumi = 0.0;
-    //set share memory;
-    //创建一个共享内存对象
+
     shmid = shmget((key_t) 8891, sizeof(struct sys_data), 0666 | IPC_CREAT);
     if (shmid == -1) {
         printf("shmget error\n");
@@ -26,7 +21,7 @@ int main(int argc, char const *argv[]) {
     } else {
         printf("client shmid=%d\n", shmid);
     }
-    //挂载共享内存到进程中
+
     shm = shmat(shmid, (void *) 0, 0);
     if (shm == (void *) (-1)) {
         printf("shmat error\n");
@@ -34,11 +29,8 @@ int main(int argc, char const *argv[]) {
     }
     da = (sys_data *) shm;
     while (1) {
-        ftemp = rand() % 100;
-        fhumi = rand() % 100;
-        da->data_t = ftemp;
-        da->data_rh = fhumi;
-        sleep(1);
+        printf("input operation and data: \n");
+        scanf("%d %d", &da->operation, &da->data);
     }
 
     return 0;
