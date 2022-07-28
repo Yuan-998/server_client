@@ -89,7 +89,6 @@ int remove_item(HM *hm, long val) {
     }
     pthread_rwlock_wrlock(&curr->rwlock);
     curr->m_next = curr->m_next->m_next;
-    print_hashmap(hm);
     pthread_rwlock_unlock(&curr->rwlock);
     return 0;
 }
