@@ -18,4 +18,4 @@ Support insertion of items in the hash table
 ### Client program:
 - Enqueue requests/operations (insert, read a bucket, delete) to the
   server (that will operate on
-  the the hash table) via shared memory buffer (POSIX shm)
+  the hash table) via shared memory buffer (POSIX shm)
