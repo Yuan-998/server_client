@@ -26,12 +26,12 @@ void free_list(List *list) {
 }
 
 HM *alloc_hashmap(size_t n_buckets) {
-    HM *hm = malloc(sizeof(HM));
+    HM *hm = (HM *) malloc(sizeof(HM));
     hm->n_buckets = n_buckets;
-    hm->buckets = malloc(sizeof(List) * n_buckets);
-    for (int i = 0; i < n_buckets; ++i) {
-        hm->buckets[i] = malloc(sizeof(List));
-        hm->buckets[i]->sentinel = malloc(sizeof(Node_HM));
+    hm->buckets = (List **) malloc(sizeof(List) * n_buckets);
+    for (size_t i = 0; i < n_buckets; ++i) {
+        hm->buckets[i] = (List *) malloc(sizeof(List));
+        hm->buckets[i]->sentinel = (Node_HM *) malloc(sizeof(Node_HM));
         pthread_rwlock_init(&hm->buckets[i]->sentinel->rwlock, NULL);
     }
     return hm;
@@ -43,7 +43,7 @@ int hash(long val, size_t n_buckets) {
 
 
 void free_hashmap(HM *hm) {
-    for (int i = 0; i < hm->n_buckets; ++i) {
+    for (size_t i = 0; i < hm->n_buckets; ++i) {
         free_list(hm->buckets[i]);
     }
     free(hm->buckets);
@@ -61,7 +61,7 @@ int insert_item(HM *hm, long val) {
     pthread_rwlock_rdlock(&sentinel->rwlock);
     Node_HM *node_next = sentinel->m_next;
     pthread_rwlock_unlock(&sentinel->rwlock);
-    Node_HM *node = malloc(sizeof(Node_HM));
+    Node_HM *node = (Node_HM *) malloc(sizeof(Node_HM));
     if (node == NULL)
         return 1;
     pthread_rwlock_init(&node->rwlock, NULL);
@@ -125,7 +125,7 @@ void print_list(List *list, int i_bucket) {
 }
 
 void print_hashmap(HM *hm) {
-    for (int i = 0; i < hm->n_buckets; ++i) {
+    for (size_t i = 0; i < hm->n_buckets; ++i) {
         print_list(hm->buckets[i], i);
     }
 }

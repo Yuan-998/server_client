@@ -60,4 +60,4 @@ int lookup_item(HM* hm, long val);
 void print_hashmap(HM* hm);
 
 // print one bucket
-void print_list(List *list, int i_bucket)
+void print_list(List *list, int i_bucket);
